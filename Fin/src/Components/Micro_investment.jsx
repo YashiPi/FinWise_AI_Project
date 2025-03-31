@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import VoiceAssistant from "./Voice_assistance";
-//import VoiceBankingAssistant from "./VoiceBankingAssistant"; // Ensure this component exists and handles callbacks
 
 const Micro_investment = () => {
   // Hardcoded userId for demonstration; replace with your auth logic
   const userId = "67e96c0be6c7599def34e657";
 
-  // ------------------ Savings Data State ------------------
+  // Local state for category-based savings (these entries are fetched/saved via backend)
   const [savingsData, setSavingsData] = useState({
     medical: [],
     home: [],
@@ -15,17 +14,31 @@ const Micro_investment = () => {
     emergency: [],
     others: [],
   });
-  // State for the selected category
+
+  // For adding a new savings entry
   const [selectedCategory, setSelectedCategory] = useState("medical");
-  // States for adding a new savings entry
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
-  // Total savings fetched from backend
+  // Total savings fetched from Budget backend
   const [backendTotalSavings, setBackendTotalSavings] = useState(0);
 
-  // ------------------ Fetch Total Savings from Backend ------------------
+  // Category definitions
+  const categories = [
+    { value: "medical", label: "Medical", color: "bg-blue-500", icon: "💊" },
+    { value: "home", label: "Home", color: "bg-green-500", icon: "🏠" },
+    {
+      value: "investment",
+      label: "Investment",
+      color: "bg-purple-500",
+      icon: "📈",
+    },
+    { value: "emergency", label: "Emergency", color: "bg-red-500", icon: "🚨" },
+    { value: "others", label: "Others", color: "bg-yellow-500", icon: "📝" },
+  ];
+
+  // Fetch total savings on mount
   useEffect(() => {
     axios
       .get(`http://localhost:5000/api/budget/total-savings/${userId}`)
@@ -36,8 +49,6 @@ const Micro_investment = () => {
       })
       .catch((err) => console.error("Error fetching total savings:", err));
   }, [userId]);
-
-  // ------------------ Fetch Savings Allocations for Selected Category ------------------
   useEffect(() => {
     axios
       .get(`http://localhost:5000/api/microinvestment/${userId}`)
@@ -56,9 +67,15 @@ const Micro_investment = () => {
       );
   }, [userId, selectedCategory]);
 
-  // ------------------ Handle Adding a New Savings Entry ------------------
+  // Handle adding new savings locally and via backend
   const handleAddSavings = () => {
     if (amount && description) {
+      const newEntry = {
+        amount: parseFloat(amount),
+        description,
+        date: new Date().toLocaleDateString(),
+      };
+      // Send new entry to backend so that it gets stored in MongoDB
       axios
         .post("http://localhost:5000/api/microinvestment", {
           userId,
@@ -85,8 +102,9 @@ const Micro_investment = () => {
     }
   };
 
-  // ------------------ Handle Deleting an Allocation ------------------
+  // Handle deleting an entry from the currently selected category
   const handleDeleteSavings = (index, allocId) => {
+    // Delete from backend first
     axios
       .delete(`http://localhost:5000/api/microinvestment/${allocId}`)
       .then(() => {
@@ -102,38 +120,25 @@ const Micro_investment = () => {
       .catch((err) => console.error("Error deleting allocation:", err));
   };
 
-  // ------------------ Compute Allocated and Unallocated Savings ------------------
+  // Compute allocated amount from local savingsData
   const allocatedSoFar = Object.values(savingsData)
     .flat()
     .reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
 
-  //const unallocated = backendTotalSavings - allocatedSoFar;
+  // Unallocated = backend total savings - allocated amount
+  const unallocated = backendTotalSavings - allocatedSoFar;
 
   // Helpers to get selected category's color and icon
-  const categoriesList = [
-    { value: "medical", label: "Medical", color: "bg-blue-500", icon: "💊" },
-    { value: "home", label: "Home", color: "bg-green-500", icon: "🏠" },
-    {
-      value: "investment",
-      label: "Investment",
-      color: "bg-purple-500",
-      icon: "📈",
-    },
-    { value: "emergency", label: "Emergency", color: "bg-red-500", icon: "🚨" },
-    { value: "others", label: "Others", color: "bg-yellow-500", icon: "📝" },
-  ];
-
   const getCategoryColor = () => {
-    const cat = categoriesList.find((c) => c.value === selectedCategory);
+    const cat = categories.find((c) => c.value === selectedCategory);
     return cat ? cat.color : "bg-blue-500";
   };
 
   const getCategoryIcon = () => {
-    const cat = categoriesList.find((c) => c.value === selectedCategory);
+    const cat = categories.find((c) => c.value === selectedCategory);
     return cat ? cat.icon : "";
   };
 
-  // ------------------ Render ------------------
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto bg-white bg-opacity-5 backdrop-filter backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden relative z-10 border border-indigo-300 border-opacity-20">
@@ -171,7 +176,7 @@ const Micro_investment = () => {
               Select Category:
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {categoriesList.map((cat) => (
+              {categories.map((cat) => (
                 <button
                   key={cat.value}
                   onClick={() => {
@@ -365,30 +370,30 @@ const Micro_investment = () => {
             </div>
           </div>
 
+          {/* Allocated + Unallocated Savings Row */}
           <div className="mt-4">
             {(() => {
-              const categorySavings = savingsData[selectedCategory] || []; // Get only selected category data
-              const allocatedCategory = categorySavings.reduce(
-                (sum, item) => sum + parseFloat(item.amount || 0),
-                0
-              );
-              const unallocated = backendTotalSavings - allocatedCategory;
-
+              const allocatedSoFar = Object.values(savingsData)
+                .flat()
+                .reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+              const unallocated = backendTotalSavings - allocatedSoFar;
               return (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="bg-white bg-opacity-30 rounded-xl p-4 shadow-lg border border-indigo-400 border-opacity-20">
                     <h3 className="text-xl font-bold text-black mb-3 flex items-center">
-                      Allocated Savings for {selectedCategory}
+                      Allocated Savings
                     </h3>
                     <p className="text-3xl font-bold text-green-600">
-                      ${allocatedCategory.toFixed(2)}
+                      ${allocatedSoFar.toFixed(2)}
                     </p>
                   </div>
-                  <div className="bg-indigo-400 bg-opacity-30  rounded-xl p-4 shadow-lg border border-indigo-400 border-opacity-20">
+                  <div className="bg-white bg-opacity-30 rounded-xl p-4 shadow-lg border border-indigo-400 border-opacity-20">
                     <h3 className="text-xl font-bold text-black mb-3 flex items-center">
-                      A penny saved is a penny earned!
+                      Unallocated Savings
                     </h3>
-                    <p className="text-2xl font-bold text-black-600">YAY !!</p>
+                    <p className="text-3xl font-bold text-green-600">
+                      ${unallocated.toFixed(2)}
+                    </p>
                   </div>
                 </div>
               );
