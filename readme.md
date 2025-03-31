@@ -37,7 +37,7 @@ This project is a banking application that integrates an AI voice assistant, bui
 
 ## Links
 
-- Project Doc:
+- Project Doc: https://docs.google.com/document/d/11yDOfSNgQQ-R3qY3ltLzO7uvp3Tdg574aCMS0PiNlIY/edit?usp=sharing
 - Presentation:
 
 ## Setup Instructions
