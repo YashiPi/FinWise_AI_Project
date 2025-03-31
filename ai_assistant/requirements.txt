@@ -1,0 +1,9 @@
+langchain
+langchain-community
+transformers
+groq
+fastapi
+uvicorn
+pymongo
+python-dotenv
+langchain_groq
