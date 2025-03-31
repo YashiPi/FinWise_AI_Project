@@ -37,8 +37,7 @@ This project is a banking application that integrates an AI voice assistant, bui
 
 ## Links
 
-- Project Doc:
-- Presentation:
+- Project Doc: https://docs.google.com/document/d/12liiy1Wq58Sp_BTE6Hj7R5rFStIKAPQtuSOmXFIXQy0/edit?usp=sharing
 
 ## Setup Instructions
 
@@ -59,12 +58,12 @@ This project is a banking application that integrates an AI voice assistant, bui
       ```
     - **Voice Assistant (Python/Flask):**
       ```bash
-      cd voice-assistant
+      cd ai-assistant
       pip install -r requirements.txt
       ```
     - **Frontend (React):**
       ```bash
-      cd client
+      cd fin
       npm install
       ```
 
@@ -82,13 +81,13 @@ This project is a banking application that integrates an AI voice assistant, bui
       ```
     - Start Frontend:
       ```bash
-      cd client
+      cd Fin
       npm run dev
       ```
     - Start Voice Assistant:
       ```bash
-      cd voice-assistant
-      python app.py
+      cd ai-assistant
+      python ai_agent_new.py
       ```
 
 ## Future Enhancements
